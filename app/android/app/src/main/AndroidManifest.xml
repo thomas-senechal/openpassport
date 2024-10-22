@@ -1,8 +1,7 @@
 <manifest
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
-  
->
+  package="com.proofofpassportapp">
           
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -37,9 +36,22 @@
             <category android:name="android.intent.category.DEFAULT"/>
         </intent-filter>
 
-      <meta-data
-        android:name="android.nfc.action.TECH_DISCOVERED"
-        android:resource="@xml/nfc_tech_filter" />
+        <meta-data
+          android:name="android.nfc.action.TECH_DISCOVERED"
+          android:resource="@xml/nfc_tech_filter" />
+
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+
+            <data
+                android:scheme="https"
+                android:host="proofofpassport-merkle-tree.xyz"
+                android:pathPrefix="/open-passport" />
+        </intent-filter>
+
       </activity>
     </application>
 </manifest>
