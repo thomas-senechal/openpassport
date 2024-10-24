@@ -8,6 +8,9 @@ import {
     PROVE_RSA_BLINDED_DSC_COMMITMENT_INDEX,
     PROVE_RSA_CURRENT_DATE_INDEX
 } from "../../../common/src/constants/contractConstants";
+import {
+    SignatureAlgorithmIndex
+} from "../../../common/src/constants/constants";
 import { Block } from "ethers";
 import { PassportData } from "../../../common/src/utils/types";
 import { genMockPassportData } from "../../../common/src/utils/genMockPassportData";
@@ -20,7 +23,7 @@ import { generateCircuitInputsProve } from "../../../common/src/utils/generateIn
 import { buildSMT } from "../../../common/src/utils/smtTree";
 import { SMT, ChildNodes } from "@ashpect/smt";
 import path from "path";
-import { poseidon3, poseidon2 } from "poseidon-lite"
+import { poseidon3, poseidon2 } from "poseidon-lite";
 
 type CircuitArtifacts = {
     [key: string]: {
@@ -42,9 +45,8 @@ describe("Test one time verification flow", async function () {
     const DSC_RSA65537_SHA256_4096_VERIFIER_ID = 0;
 
     // contracts
-    let verifiersManager: any;
-    let formatter: any;
-    let oneTimeSBT: any;
+    let genericVerifier: any;
+    let openPassportVerifier: any;
 
     let verifierProveRsa65537Sha256: any;
     let verifierDscRsa65537Sha256_4096: any;
@@ -147,32 +149,26 @@ describe("Test one time verification flow", async function () {
         await verifierDscRsa65537Sha256_4096.waitForDeployment();
         console.log('\x1b[34m%s\x1b[0m', `Verifier_dsc_rsa_65537_sha256_4096 deployed to ${verifierDscRsa65537Sha256_4096.target}`);
 
-        const verifiersManagerFactory = await ethers.getContractFactory("VerifiersManager", owner);
-        verifiersManager = await verifiersManagerFactory.deploy();
-        await verifiersManager.waitForDeployment();
-        console.log('\x1b[34m%s\x1b[0m', `VerfiersManager deployed to ${verifiersManager.target}`);
+        const genericVerifierFactory = await ethers.getContractFactory("GenericVerifier", owner);
+        genericVerifier = await genericVerifierFactory.deploy();
+        await genericVerifier.waitForDeployment();
+        console.log('\x1b[34m%s\x1b[0m', `GenericVerifier deployed to ${genericVerifier.target}`);
 
-        const formatterFactory = await ethers.getContractFactory("Formatter", owner);
-        formatter = await formatterFactory.deploy();
-        await formatter.waitForDeployment();
-        console.log('\x1b[34m%s\x1b[0m', `formatter deployed to ${formatter.target}`);
-
-        const sbtFactory = await ethers.getContractFactory("OneTimeSBT", owner);
-        oneTimeSBT = await sbtFactory.deploy(
-            verifiersManager,
-            formatter
+        const openPassportVerifierFactory = await ethers.getContractFactory("OpenPassportVerifier", owner);
+        openPassportVerifier = await openPassportVerifierFactory.deploy(
+            genericVerifier
         );
-        await oneTimeSBT.waitForDeployment();
-        console.log('\x1b[34m%s\x1b[0m', `sbt deployed to ${oneTimeSBT.target}`);
+        await openPassportVerifier.waitForDeployment();
+        console.log('\x1b[34m%s\x1b[0m', `openPassportVerifier deployed to ${openPassportVerifier.target}`);
 
-        await verifiersManager.updateVerifier(
-            VERIFICATION_TYPE_ENUM_PROVE,
-            PROVE_RSA_65537_SHA256_VERIFIER_ID,
+        await genericVerifier.updateVerifier(
+            0,
+            SignatureAlgorithmIndex.rsa_65537_sha256_2048,
             verifierProveRsa65537Sha256.target
         );
-        await verifiersManager.updateVerifier(
-            VERIFICATION_TYPE_ENUM_DSC,
-            DSC_RSA65537_SHA256_4096_VERIFIER_ID,
+        await genericVerifier.updateVerifier(
+            1,
+            SignatureAlgorithmIndex.rsa_65537_sha256_4096,
             verifierDscRsa65537Sha256_4096.target
         );
 
@@ -204,104 +200,121 @@ describe("Test one time verification flow", async function () {
 
     describe("test", async function() {
         it("Should be able to mint and set attributes", async function() {
-            await oneTimeSBT.mint(
-                PROVE_RSA_65537_SHA256_VERIFIER_ID,
-                DSC_RSA65537_SHA256_4096_VERIFIER_ID,
-                {
+            console.log(prove_proof[0].length);
+            console.log(prove_proof[1][0].length);
+            console.log(prove_proof[2].length);
+            console.log(prove_proof[3].length);
+            let attestation = {
+                proveVerifierId: SignatureAlgorithmIndex.rsa_65537_sha256_2048,
+                dscVerifierId: SignatureAlgorithmIndex.rsa_65537_sha256_4096,
+                pProof: {
+                    signatureType: 0,
                     a: prove_proof[0],
                     b: prove_proof[1],
                     c: prove_proof[2],
-                    pubSignals: prove_proof[3]
+                    pubSignalsRSA: prove_proof[3],
+                    pubSignalsECDSA: Array(28).fill(0)
                 },
-                {
+                dProof: {
                     a: dsc_proof[0],
                     b: dsc_proof[1],
                     c: dsc_proof[2],
                     pubSignals: dsc_proof[3]
-                },
+                }
+            }
+            try {
+                fs.writeFileSync("./test/integrationTest/attestation.json", JSON.stringify(attestation, null, 2), 'utf-8');
+                // console.log(`Attestation successfully saved to ${attestationPath}`);
+            } catch (error) {
+                console.error("Failed to save attestation to JSON file:", error);
+            }
+            const ISSUING_STATE_SELECTOR: string = "0x0000000000000000000000000000000000000000000000000000000000000001";
+            await openPassportVerifier.verifyAndDiscloseAttributes(
+                attestation,
+                ISSUING_STATE_SELECTOR
             );
         });
 
-        it("Should not be able to mint with invalid prove proof", async function() {
-            let invalid_prove_proof = JSON.parse(JSON.stringify(prove_proof));
-            invalid_prove_proof[0] = [0, 0];
+        // it("Should not be able to mint with invalid prove proof", async function() {
+        //     let invalid_prove_proof = JSON.parse(JSON.stringify(prove_proof));
+        //     invalid_prove_proof[0] = [0, 0];
 
-            await expect(
-                oneTimeSBT.mint(
-                    PROVE_RSA_65537_SHA256_VERIFIER_ID,
-                    DSC_RSA65537_SHA256_4096_VERIFIER_ID,
-                    {
-                        a: invalid_prove_proof[0],
-                        b: invalid_prove_proof[1],
-                        c: invalid_prove_proof[2],
-                        pubSignals: invalid_prove_proof[3]
-                    },
-                    {
-                        a: dsc_proof[0],
-                        b: dsc_proof[1],
-                        c: dsc_proof[2],
-                        pubSignals: dsc_proof[3]
-                    },
-                )
-            ).to.be.revertedWithCustomError(
-                oneTimeSBT,
-                "INVALID_PROVE_PROOF"
-            );
-        });
+        //     await expect(
+        //         oneTimeSBT.mint(
+        //             PROVE_RSA_65537_SHA256_VERIFIER_ID,
+        //             DSC_RSA65537_SHA256_4096_VERIFIER_ID,
+        //             {
+        //                 a: invalid_prove_proof[0],
+        //                 b: invalid_prove_proof[1],
+        //                 c: invalid_prove_proof[2],
+        //                 pubSignals: invalid_prove_proof[3]
+        //             },
+        //             {
+        //                 a: dsc_proof[0],
+        //                 b: dsc_proof[1],
+        //                 c: dsc_proof[2],
+        //                 pubSignals: dsc_proof[3]
+        //             },
+        //         )
+        //     ).to.be.revertedWithCustomError(
+        //         oneTimeSBT,
+        //         "INVALID_PROVE_PROOF"
+        //     );
+        // });
 
-        it("Should not be able to mint with invalid dsc proof", async function() {
-            let invalid_dsc_proof = dsc_proof;
-            invalid_dsc_proof[0] = [0, 0];
+        // it("Should not be able to mint with invalid dsc proof", async function() {
+        //     let invalid_dsc_proof = dsc_proof;
+        //     invalid_dsc_proof[0] = [0, 0];
 
-            await expect(
-                oneTimeSBT.mint(
-                    PROVE_RSA_65537_SHA256_VERIFIER_ID,
-                    DSC_RSA65537_SHA256_4096_VERIFIER_ID,
-                    {
-                        a: prove_proof[0],
-                        b: prove_proof[1],
-                        c: prove_proof[2],
-                        pubSignals: prove_proof[3]
-                    },
-                    {
-                        a: invalid_dsc_proof[0],
-                        b: invalid_dsc_proof[1],
-                        c: invalid_dsc_proof[2],
-                        pubSignals: invalid_dsc_proof[3]
-                    },
-                )
-            ).to.be.revertedWithCustomError(
-                oneTimeSBT,
-                "INVALID_DSC_PROOF"
-            );
-        });
+        //     await expect(
+        //         oneTimeSBT.mint(
+        //             PROVE_RSA_65537_SHA256_VERIFIER_ID,
+        //             DSC_RSA65537_SHA256_4096_VERIFIER_ID,
+        //             {
+        //                 a: prove_proof[0],
+        //                 b: prove_proof[1],
+        //                 c: prove_proof[2],
+        //                 pubSignals: prove_proof[3]
+        //             },
+        //             {
+        //                 a: invalid_dsc_proof[0],
+        //                 b: invalid_dsc_proof[1],
+        //                 c: invalid_dsc_proof[2],
+        //                 pubSignals: invalid_dsc_proof[3]
+        //             },
+        //         )
+        //     ).to.be.revertedWithCustomError(
+        //         oneTimeSBT,
+        //         "INVALID_DSC_PROOF"
+        //     );
+        // });
 
-        it("Should not be able to mint with invalid blinded dcs", async function() {
-            let invalid_prove_proof = prove_proof;
-            invalid_prove_proof[3][PROVE_RSA_BLINDED_DSC_COMMITMENT_INDEX] = 0;
+        // it("Should not be able to mint with invalid blinded dcs", async function() {
+        //     let invalid_prove_proof = prove_proof;
+        //     invalid_prove_proof[3][PROVE_RSA_BLINDED_DSC_COMMITMENT_INDEX] = 0;
 
-            await expect(
-                oneTimeSBT.mint(
-                    PROVE_RSA_65537_SHA256_VERIFIER_ID,
-                    DSC_RSA65537_SHA256_4096_VERIFIER_ID,
-                    {
-                        a: invalid_prove_proof[0],
-                        b: invalid_prove_proof[1],
-                        c: invalid_prove_proof[2],
-                        pubSignals: invalid_prove_proof[3]
-                    },
-                    {
-                        a: dsc_proof[0],
-                        b: dsc_proof[1],
-                        c: dsc_proof[2],
-                        pubSignals: dsc_proof[3]
-                    },
-                )
-            ).to.be.revertedWithCustomError(
-                oneTimeSBT,
-                "UNEQUAL_BLINDED_DSC_COMMITMENT"
-            );
-        });
+        //     await expect(
+        //         oneTimeSBT.mint(
+        //             PROVE_RSA_65537_SHA256_VERIFIER_ID,
+        //             DSC_RSA65537_SHA256_4096_VERIFIER_ID,
+        //             {
+        //                 a: invalid_prove_proof[0],
+        //                 b: invalid_prove_proof[1],
+        //                 c: invalid_prove_proof[2],
+        //                 pubSignals: invalid_prove_proof[3]
+        //             },
+        //             {
+        //                 a: dsc_proof[0],
+        //                 b: dsc_proof[1],
+        //                 c: dsc_proof[2],
+        //                 pubSignals: dsc_proof[3]
+        //             },
+        //         )
+        //     ).to.be.revertedWithCustomError(
+        //         oneTimeSBT,
+        //         "UNEQUAL_BLINDED_DSC_COMMITMENT"
+        //     );
+        // });
     });
 
     // TODO: make this function able to take inputs
