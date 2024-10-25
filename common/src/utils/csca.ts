@@ -71,7 +71,6 @@ export function generateCircuitInputsDSC(dscSecret: string, dscCertificate: any,
     const dsc_messagePaddedLen_formatted = BigInt(dsc_messagePaddedLen).toString()
 
     const cscaPem = getCSCAFromSKI(authorityKeyIdentifier, devMode);
-    console.log('cscaPem', cscaPem);
 
     const { x: csca_x, y: csca_y, modulus: csca_modulus, signature_algorithm: csca_signature_algorithm } = parseCertificate(cscaPem);
     const { n: n_csca, k: k_csca } = getNAndKCSCA(csca_signature_algorithm);

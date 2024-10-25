@@ -200,10 +200,6 @@ describe("Test one time verification flow", async function () {
 
     describe("test", async function() {
         it("Should be able to mint and set attributes", async function() {
-            console.log(prove_proof[0].length);
-            console.log(prove_proof[1][0].length);
-            console.log(prove_proof[2].length);
-            console.log(prove_proof[3].length);
             let attestation = {
                 proveVerifierId: SignatureAlgorithmIndex.rsa_65537_sha256_2048,
                 dscVerifierId: SignatureAlgorithmIndex.rsa_65537_sha256_4096,
@@ -219,7 +215,7 @@ describe("Test one time verification flow", async function () {
                     a: dsc_proof[0],
                     b: dsc_proof[1],
                     c: dsc_proof[2],
-                    pubSignals: dsc_proof[3]
+                    pubSignals: [dsc_proof[3][0]]
                 }
             }
             try {
@@ -385,7 +381,8 @@ describe("Test one time verification flow", async function () {
         let dsc = generateCircuitInputsDSC(
             "4242",
             mock_dsc_sha256_rsa_4096,
-            1664
+            1664,
+            true
         );
 
         // TODO: I tried to generate proof in the test code, but it failed.
