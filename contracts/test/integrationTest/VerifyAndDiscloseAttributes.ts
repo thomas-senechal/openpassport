@@ -215,7 +215,7 @@ describe("Test one time verification flow", async function () {
                     a: dsc_proof[0],
                     b: dsc_proof[1],
                     c: dsc_proof[2],
-                    pubSignals: [dsc_proof[3][0]]
+                    pubSignals: dsc_proof[3]
                 }
             }
             try {
@@ -433,7 +433,6 @@ describe("Test one time verification flow", async function () {
         
         // Correctly join the digits without padding each digit
         const yymmdd = digits.join('');
-        console.log("yymmdd: ", yymmdd);
         
         const yy = parseInt(yymmdd.slice(0, 2), 10);
         const mm = parseInt(yymmdd.slice(2, 4), 10);

@@ -1,6 +1,6 @@
 {
   "name": "@openpassport/contracts",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,6 +12,7 @@
     "test:local": "TEST_ENV=local npx hardhat test",
     "test:prod": "TEST_ENV=prod npx hardhat test",
     "deploy_all": "npx hardhat ignition deploy ignition/modules/Deploy_All.ts --network optimism --verify",
+    "deploy_all:test": "npx hardhat ignition deploy ignition/modules/Deploy_All.ts --network sepolia --verify",
     "compile": "npx hardhat compile",
     "publish": "npm publish --access public"
   },

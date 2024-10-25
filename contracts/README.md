@@ -37,13 +37,11 @@ If you want to generate your own proof or when you update circuits, pls delete j
 These contracts are deployed on Sepolia.
 | Contract Name | Address |
 | --- | --- |
-| GenericVerifier | 0x79A51bf5B1b903A60Eb91b80954943E596B4aa26 |
-| OpenPassportVerifier | 0x8BE4B0c58D0290f7525217d515f7de967aD7b527 |
-| Verifier_prove_rsa_65537_sha1 | 0x705489920dc64722Bd702C37F01996557Aa040fD |
-| Verifier_prove_rsa_65537_sha256 | 0x8bbC7560e745CFC8Fe63056245ece0EB9a4DEa75 |
-| Verifier_prove_rsapss_65537_sha256 | 0x44ED8EBaf112D176f3EFb379E4f2a35f1Be37004 |
-| Verifier_prove_ecdsa_secp256r1_sha256 | 0x123f9ff29493ccC4EFd53976FeF5300B20623B11 |
-| Verifier_prove_ecdsa_secp256r1_sha1 | 0xAdA147C77f64f07273AF853536ee9495c0B997e4 |
-| Verifier_dsc_rsa_65537_sha1_4096 | 0x6D7bE7668407169bf5472a86bE693f1dCc88A6aD |
-| Verifier_dsc_rsa_65537_sha256_4096 | 0x097547F99696774205521e143616DD7AC8edBbe0 |
-| Verifier_dsc_rsapss_65537_sha256_4096 | 0xd4Fa0F177b8B8AC1312631B19A9a0ADc7De5d091 |
+| GenericVerifier | 0x796E2c4e66E3984641baEDa77b267CcAD76D99bE |
+| OpenPassportVerifier | 0x493f59620e9587dace89DB92CAB36eD96b1C7907 |
+| Verifier_prove_rsa_65537_sha1 | 0x272956144fc77b6dFb7161230426a1823339E147 |
+| Verifier_prove_rsa_65537_sha256 | 0xd89728C1211a8f239dA74B48d562c464Ee0B31fa |
+| Verifier_prove_rsapss_65537_sha256 | 0xF77Be82318F11392Efb5F1062D954911d6086537 |
+| Verifier_dsc_rsa_65537_sha1_4096 | 0x0F94D82657a3622E96Ff95008b61F903CF83D314 |
+| Verifier_dsc_rsa_65537_sha256_4096 | 0x63792806a0384D5a51EAd3A6d278A602da2F288e |
+| Verifier_dsc_rsapss_65537_sha256_4096 | 0x2FAA6D634Fe645333561F470F2507Ede45b0BE9c |
