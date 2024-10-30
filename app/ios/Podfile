@@ -12,37 +12,25 @@ project 'OpenPassport.xcodeproj'
 platform :ios, '14.0'
 prepare_react_native_project!
 
-
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# Use this single declaration for framework linking
+use_frameworks! :linkage => :static
 
 target 'OpenPassport' do
-
   config = use_native_modules!
 
-  use_frameworks!
   pod 'NFCPassportReader', git: 'https://github.com/0xturboblitz/NFCPassportReader.git', commit: '0a8e26d56f5f85f698b67c5df5ea9ecbb53cbc45'
   pod 'QKMRZScanner'
   pod 'RNFS', :path => '../node_modules/react-native-fs'
   pod 'lottie-ios'
   pod 'SwiftQRScanner', :git => 'https://github.com/vinodiOS/SwiftQRScanner'
+  pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
+  pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
 
   use_react_native!(
     :path => config[:reactNativePath],
-
     :hermes_enabled => false,
-    # :fabric_enabled => flags[:fabric_enabled],
-    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
-  # target 'OpenPassport App Clip' do
-  #   inherit! :search_paths
-  #   inherit! :complete
-  # end
 
   post_install do |installer|
     installer.generated_projects.each do |project|
@@ -54,12 +42,10 @@ target 'OpenPassport' do
       end
     end
 
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
+      :mac_catalyst_enabled => false
     )
   end
 end
