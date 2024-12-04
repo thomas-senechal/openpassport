@@ -3,6 +3,7 @@ pragma circom 2.1.9;
 include "../rsa/rsaPkcs1.circom";
 include "secp256r1Verifier.circom";
 include "../rsapss/rsapss.circom";
+// include "../rsapss/rsaPss.circom";
 include "../rsa/rsa.circom";
 include "../rsa/verifyRsaPkcs1v1_5.circom";
 
@@ -43,8 +44,13 @@ template SignatureVerifier(signatureAlgorithm, n, k) {
 
     if (signatureAlgorithm == 4 || signatureAlgorithm == 12) {
         var pubKeyBitsLength = getKeyLength(signatureAlgorithm);
+        var SALT_LEN = HASH_LEN_BITS / 8;
+        // var E_BITS = getExponentBits(signatureAlgorithm);
+        var E_BITS = 65537;
 
-        component rsaPssSha256Verification = VerifyRsaPssSig(n, k, HASH_LEN_BITS, pubKeyBitsLength);
+
+        // component rsaPssSha256Verification = VerifyRsaPssSig(n, k, HASH_LEN_BITS, pubKeyBitsLength);
+        component rsaPssSha256Verification = VerifyRsaSig(n, k, SALT_LEN, E_BITS, HASH_LEN_BITS);
         rsaPssSha256Verification.pubkey <== pubKey;
         rsaPssSha256Verification.signature <== signature;
         rsaPssSha256Verification.hashed <== hash; // send the raw hash
