@@ -2,8 +2,8 @@ pragma circom 2.1.9;
 
 include "../rsa/rsaPkcs1.circom";
 include "secp256r1Verifier.circom";
-include "../rsapss/rsapss.circom";
-// include "../rsapss/rsaPss.circom";
+// include "../rsapss/rsapss.old.circom";
+include "../rsapss/rsaPss.circom";
 include "../rsa/rsa.circom";
 include "../rsa/verifyRsaPkcs1v1_5.circom";
 
