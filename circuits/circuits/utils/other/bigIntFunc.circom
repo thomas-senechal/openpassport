@@ -201,6 +201,57 @@ function long_div2(CHUNK_SIZE, CHUNK_NUMBER, M, A, B){
     return out;
 }
 
+// n bits per register
+// a has k + m registers
+// b has k registers
+// out[0] has length m + 1 -- quotient
+// out[1] has length k -- remainder
+// implements algorithm of https://people.eecs.berkeley.edu/~fateman/282/F%20Wright%20notes/week4.pdf
+// b[k-1] must be nonzero!
+function long_div_optimised(n, k, m, a, b){
+    var out[2][200];
+    
+    var remainder[200];
+    for (var i = 0; i < m + k; i++) {
+        remainder[i] = a[i];
+    }
+    
+    var mult[200];
+    var dividend[200];
+    for (var i = m; i >= 0; i--) {
+        if (i == m) {
+            dividend[k] = 0;
+            for (var j = k - 1; j >= 0; j--) {
+                dividend[j] = remainder[j + m];
+            }
+        } else {
+            for (var j = k; j >= 0; j--) {
+                dividend[j] = remainder[j + i];
+            }
+        }
+        
+        out[0][i] = short_div(n, k, dividend, b);
+        
+        var mult_shift[200] = long_scalar_mult_optimised(n, k, out[0][i], b);
+        var subtrahend[200];
+        for (var j = 0; j < m + k; j++) {
+            subtrahend[j] = 0;
+        }
+        for (var j = 0; j <= k; j++) {
+            if (i + j < m + k) {
+                subtrahend[i + j] = mult_shift[j];
+            }
+        }
+        remainder = long_sub_optimised(n, m + k, remainder, subtrahend);
+    }
+    for (var i = 0; i < k; i++) {
+        out[1][i] = remainder[i];
+    }
+    out[1][k] = 0;
+    
+    return out;
+}
+
 function long_div(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
     return long_div2(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER, A, B);
 }
@@ -419,6 +470,35 @@ function long_sub_mod(CHUNK_SIZE, CHUNK_NUMBER, A, B, P) {
     }
 }
 
+// n bits per register
+// a has k registers
+// b has k registers
+// a >= b
+function long_sub_optimised(n, k, a, b) {
+    var diff[200];
+    var borrow[200];
+    for (var i = 0; i < k; i++) {
+        if (i == 0) {
+            if (a[i] >= b[i]) {
+                diff[i] = a[i] - b[i];
+                borrow[i] = 0;
+            } else {
+                diff[i] = a[i] - b[i] + (1 << n);
+                borrow[i] = 1;
+            }
+        } else {
+            if (a[i] >= b[i] + borrow[i - 1]) {
+                diff[i] = a[i] - b[i] - borrow[i - 1];
+                borrow[i] = 0;
+            } else {
+                diff[i] = (1 << n) + a[i] - b[i] - borrow[i - 1];
+                borrow[i] = 1;
+            }
+        }
+    }
+    return diff;
+}
+
 function prod_mod(CHUNK_SIZE, CHUNK_NUMBER, A, B, P) {
     var prod[150] = prod(CHUNK_SIZE,CHUNK_NUMBER,A,B);
     var temp[2][150] = long_div(CHUNK_SIZE,CHUNK_NUMBER,prod,P);
@@ -584,6 +664,22 @@ function long_scalar_mult_100(n, k, a, b) {
     }
     return out;
 }
+
+// a is a n-bit scalar
+// b has k registers
+function long_scalar_mult_optimised(n, k, a, b) {
+    var out[200];
+    for (var i = 0; i < 200; i++) {
+        out[i] = 0;
+    }
+    for (var i = 0; i < k; i++) {
+        var temp = out[i] + (a * b[i]);
+        out[i] = temp % (1 << n);
+        out[i + 1] = out[i + 1] + temp \ (1 << n);
+    }
+    return out;
+}
+
 
 // n bits per register
 // a has k registers
