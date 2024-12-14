@@ -49,7 +49,7 @@ export function getNAndK(sigAlg: SignatureAlgorithm) {
     }
 
     if (keyLength === 4096) {
-      return { n: n_dsc, k: k_dsc_4096 }; // 4096/32 = 128
+      return { n: n_dsc_4096, k: k_dsc_4096 }; // 4096/32 = 128
     }
     return { n: n_dsc, k: k_dsc }; // 2048/32 = 64
   }

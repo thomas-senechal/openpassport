@@ -17,6 +17,7 @@ pragma circom 2.1.9;
  16: rsapss_sha256_3_3072
  17: rsapss_sha256_3_4096
  18: rsapss_sha384_65537_3072
+ 19: rsapss_sha256_65537_3072
 */
 
 function getHashLength(signatureAlgorithm) {
@@ -65,6 +66,12 @@ function getHashLength(signatureAlgorithm) {
     if (signatureAlgorithm == 18) {
         return 384;
     }
+    if (signatureAlgorithm == 19) {
+        return 256;
+    }
+    if (signatureAlgorithm == 20) {
+        return 256;
+    }
     return 0;
 }
 
@@ -112,6 +119,9 @@ function getKeyLength(signatureAlgorithm) {
         return 4096;
     }
     if (signatureAlgorithm == 18) {
+        return 3072;
+    }
+    if (signatureAlgorithm == 19) {
         return 3072;
     }
     return 0;
@@ -164,6 +174,9 @@ function getKLengthFactor(signatureAlgorithm) {
     if (signatureAlgorithm == 18) {
         return 1;
     }
+    if (signatureAlgorithm == 19) {
+        return 1;
+    }
     return 0;
 
 }
@@ -185,6 +198,9 @@ function getExponentBits(signatureAlgorithm) {
     if (signatureAlgorithm == 11) {
         return 17;
     }
+    if (signatureAlgorithm == 12) {
+        return 17;
+    }
     if (signatureAlgorithm == 13) {
         return 2; // 3
     }
@@ -201,6 +217,9 @@ function getExponentBits(signatureAlgorithm) {
         return 2;
     }
     if (signatureAlgorithm == 18) {
+        return 17;
+    }
+    if (signatureAlgorithm == 19) {
         return 17;
     }
     return 0;
