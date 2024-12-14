@@ -88,9 +88,10 @@ export enum SignatureAlgorithmIndex {
   rsapss_sha256_65537_4096 = 12,
   rsa_sha256_3_2048 = 13,
   rsa_sha256_65537_3072 = 14,
-  rsapss_sha256_3_4096 = 15,
+  rsa_sha512_65537_4096 = 15,
   rsapss_sha256_3_3072 = 16,
-  rsapss_sha384_65537_3072 = 17,
+  rsapss_sha256_3_4096 = 17,
+  rsapss_sha384_65537_3072 = 18,
 }
 
 export const attributeToPosition = {
@@ -112,8 +113,10 @@ export const circuitToSelectorMode = {
 
 export const MAX_DATAHASHES_LEN = 320; // max formatted and concatenated datagroup hashes length in bytes
 export const n_dsc = 64;
+export const n_dsc_3072 = 96;
+export const n_dsc_4096 = 64;
 export const k_dsc = 32;
-export const k_dsc_3072 = 48;
+export const k_dsc_3072 = 32;  //48;
 export const k_dsc_4096 = 64;
 export const n_csca = 120;
 export const k_csca = 35;
